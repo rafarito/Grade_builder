@@ -2,6 +2,8 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
 from scheduler import Scheduler
+import os
+import threading
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -12,10 +14,42 @@ class App(ctk.CTk):
         
         self.title("Gerador de Grade Curricular 2026.2")
         self.geometry("1100x700")
-        
-        self.scheduler = Scheduler()
         self.disciplinas_atuais = []
+        self.scheduler = None
         
+        json_path = "dados_disciplinas.json"
+        
+        # Se o JSON não existe, vai precisar parsear o PDF. Mostra a tela de loading.
+        if not os.path.exists(json_path):
+            self.show_loading()
+        else:
+            self.scheduler = Scheduler()
+            self.build_ui()
+            
+    def show_loading(self):
+        self.loading_frame = ctk.CTkFrame(self)
+        self.loading_frame.pack(expand=True, fill="both")
+        
+        lbl = ctk.CTkLabel(self.loading_frame, 
+                           text="Configurando a base de dados...\nLendo o PDF pela primeira vez (isso pode levar alguns segundos).", 
+                           font=ctk.CTkFont(size=18, weight="bold"))
+        lbl.pack(expand=True)
+        
+        # Inicia o parser em uma thread separada para não travar a interface
+        threading.Thread(target=self.load_scheduler_bg, daemon=True).start()
+        self.check_loading()
+        
+    def load_scheduler_bg(self):
+        self.scheduler = Scheduler()
+        
+    def check_loading(self):
+        if self.scheduler is not None:
+            self.loading_frame.destroy()
+            self.build_ui()
+        else:
+            self.after(100, self.check_loading)
+
+    def build_ui(self):
         # Configure grid
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=2)
