@@ -1,0 +1,21 @@
+# Ambientes Virtuais
+venv/
+env/
+.env
+
+# Arquivos gerados dinamicamente
+dados_disciplinas.json
+
+# Cache do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs / Editores
+.vscode/
+.idea/
+*.swp
+/dist
+/build
+*.spec
+
